@@ -37,7 +37,7 @@ int main() {
   if (wq_portal == MAP_FAILED)
     return 1;
   end = rdtsc();
-  printf("[time ] mapped work queue: %lu\n", end - start);
+  printf("[time  ] mapped work queue: %lu\n", end - start);
 
 
 
@@ -53,7 +53,7 @@ int main() {
   comp.status = 0;
   desc.completion_addr = (uintptr_t)&comp;
   end = rdtsc();
-  printf("[time ] descriptor preparation: %lu\n", end - start);
+  printf("[time  ] descriptor preparation: %lu\n", end - start);
 
 
 
@@ -62,7 +62,7 @@ int main() {
 	_mm_sfence();
 	movdir64b(wq_portal, &desc);
   end = rdtsc();
-  printf("[time ] submission: %lu\n", end - start);
+  printf("[time  ] submission: %lu\n", end - start);
 
 
 
@@ -76,13 +76,13 @@ int main() {
     }
   }
   end = rdtsc();
-  printf("[time ] waiting: %lu\n", end - start);
+  printf("[time  ] waiting: %lu\n", end - start);
 
 
 
   // Print Results
   printf("--------------------------------------\n");
-  printf("[time ] full offload: %lu\n", end - offload_start);
+  printf("[time  ] full offload: %lu\n", end - offload_start);
 
   if (comp.status == 1)
     printf("[verify] passed\n");

@@ -35,7 +35,7 @@ int main() {
       if (i == 0)
         data_buf[i][j][0] = (j + 1) * (j + 1);
     }
-    printf("[data  ] before: (desc-%02d) src=%4lu, dst=%4lu\n", j, data_buf[0][j][0], data_buf[1][j][0]);
+    printf("[data  ] before-%02d: src=%4lu, dst=%4lu\n", j, data_buf[0][j][0], data_buf[1][j][0]);
   }
   desc_buf = (struct dsa_hw_desc*)aligned_alloc(64, BATCH_SIZE * sizeof(struct dsa_hw_desc));
   comp_buf = (struct dsa_completion_record*)aligned_alloc(32, BATCH_SIZE * sizeof(struct dsa_completion_record));
@@ -49,7 +49,7 @@ int main() {
   if (wq_portal == MAP_FAILED)
     return 1;
   end = rdtsc();
-  printf("[time ] mapped work queue: %lu\n", end - start);
+  printf("[time  ] mapped work queue: %lu\n", end - start);
 
 
 
@@ -76,7 +76,7 @@ int main() {
   batch_desc.completion_addr = (uintptr_t)&batch_comp;
 
   end = rdtsc();
-  printf("[time ] descriptor preparation: %lu\n", end - start);
+  printf("[time  ] descriptor preparation: %lu\n", end - start);
 
 
 
@@ -85,7 +85,7 @@ int main() {
 	_mm_sfence();
 	movdir64b(wq_portal, &batch_desc);
   end = rdtsc();
-  printf("[time ] submission: %lu\n", end - start);
+  printf("[time  ] submission: %lu\n", end - start);
 
 
 
@@ -99,13 +99,13 @@ int main() {
     }
   }
   end = rdtsc();
-  printf("[time ] waiting: %lu\n", end - start);
+  printf("[time  ] waiting: %lu\n", end - start);
 
 
 
   // Print Results
   printf("--------------------------------------\n");
-  printf("[time ] full offload: %lu\n", end - offload_start);
+  printf("[time  ] full offload: %lu\n", end - offload_start);
 
   if (batch_comp.status == 1)
     printf("[verify] passed\n");
@@ -115,7 +115,7 @@ int main() {
   munmap(wq_portal, WQ_PORTAL_SIZE);
 
   for (int j = 0; j < BUF_SIZE; j++) {
-    printf("[data  ] after: (desc-%02d) src=%4lu, dst=%4lu\n", j, data_buf[0][j][0], data_buf[1][j][0]);
+    printf("[data  ] after-%02d: src=%4lu, dst=%4lu\n", j, data_buf[0][j][0], data_buf[1][j][0]);
     for (int i = 0; i < 3; i++) {
       free(data_buf[i][j]);
     }
