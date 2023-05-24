@@ -1,28 +1,26 @@
-#ifndef _UTIL_H__
-#define __UTIL_H__
+#ifndef _COMMON_H__
+#define __COMMON_H__
 
-#include <stdio.h>
-#include <stdint.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <string.h>
 #include <sys/mman.h>
-#include <sys/types.h>
 #include <linux/idxd.h>
 #include <accel-config/libaccel_config.h>
 #include <x86intrin.h>
-#include <linux/limits.h>
 
 #ifndef __GNUC__
 #define __asm__ asm
 #endif
 
 
+void single(int offloads, int xfer_size, int buf_size);
+void batch(int offloads, int xfer_size, int batch_size, int buf_size);
+void async(int offloads, int xfer_size, int buf_size);
+
+
 
 static __always_inline uint64_t
-rdtsc(void)
-{
+rdtsc(void) {
   uint64_t tsc;
   unsigned int dummy;
   tsc = __rdtscp(&dummy);
@@ -37,8 +35,7 @@ rdtsc(void)
 #define WQ_PORTAL_SIZE 4096
 
 static inline void
-movdir64b(void *dst, const void *src)
-{
+movdir64b(void *dst, const void *src) {
   asm volatile(".byte 0x66, 0x0f, 0x38, 0xf8, 0x02\t\n"
     : : "a" (dst), "d" (src));
 }
@@ -46,8 +43,7 @@ movdir64b(void *dst, const void *src)
 
 
 static inline unsigned char
-umwait(unsigned int state, unsigned long long timeout)
-{
+umwait(unsigned int state, unsigned long long timeout) {
   uint8_t r;
   uint32_t timeout_low = (uint32_t)timeout;
   uint32_t timeout_high = (uint32_t)(timeout >> 32);
@@ -61,8 +57,7 @@ umwait(unsigned int state, unsigned long long timeout)
 
 
 static inline void
-umonitor(void *addr)
-{
+umonitor(void *addr) {
   asm volatile(".byte 0xf3, 0x48, 0x0f, 0xae, 0xf0" : : "a"(addr));
 }
 
@@ -108,5 +103,18 @@ static void * map_wq(void) {
 }
 
 
+
+static inline
+void clflushopt(volatile void *__p) {
+  asm volatile("clflushopt %0" : "+m" (*(volatile char  *)__p));
+}
+
+static inline void
+cflush(char *buf, uint64_t len) {
+  char *b = buf;
+  char *e = buf + len;
+  for (; b < e; b += 64)
+    clflushopt(b);
+}
 
 #endif
