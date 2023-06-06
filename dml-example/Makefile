@@ -1,10 +1,10 @@
-CC=gcc
+CC=g++
 CFLAGS=-I.
-LDFLAGS = -laccel-config
+LDFLAGS = -laccel-config -ldml
 DEPS = common.h
-SRCS = offload.c single.c batch.c async.c
-OBJS = $(SRCS:.c=.o)
-EX = offload
+SRCS = offload.cc single.cc batch.cc async.cc
+OBJS = $(SRCS:.cc=.o)
+EX = dml-offload
 
 .PHONY: clean
 

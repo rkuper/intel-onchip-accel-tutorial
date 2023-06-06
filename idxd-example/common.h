@@ -12,11 +12,19 @@
 #define __asm__ asm
 #endif
 
-
-void single(int offloads, int xfer_size, int buf_size);
-void batch(int offloads, int xfer_size, int batch_size, int buf_size);
-void async(int offloads, int xfer_size, int buf_size);
-
+#define EXAMPLES      3
+#define XFER_SIZE  4096
+#define BATCH_SIZE    4
+#define BUF_SIZE      4
+int single(uint64_t *(data_buf[2][BUF_SIZE]), struct dsa_hw_desc *desc_buf,
+                                              struct dsa_completion_record *comp_buf,
+                                              void *wq_portal);
+int batch(uint64_t *(data_buf[2][BUF_SIZE]), struct dsa_hw_desc *desc_buf,
+                                             struct dsa_completion_record *comp_buf,
+                                             void *wq_portal);
+int async(uint64_t *(data_buf[2][BUF_SIZE]), struct dsa_hw_desc *desc_buf,
+                                             struct dsa_completion_record *comp_buf,
+                                             void *wq_portal);
 
 
 static __always_inline uint64_t
@@ -40,6 +48,16 @@ movdir64b(void *dst, const void *src) {
     : : "a" (dst), "d" (src));
 }
 
+
+static inline unsigned int
+enqcmd(volatile void *portal, void *desc)
+{
+  uint8_t retry;
+  asm volatile(".byte 0xf2, 0x0f, 0x38, 0xf8, 0x02\t\n"
+               "setz %0\t\n"
+               : "=r"(retry) : "a" (portal), "d" (desc));
+  return (unsigned int)retry;
+}
 
 
 static inline unsigned char
@@ -83,8 +101,8 @@ static void * map_wq(void) {
       * ACCFG_WQT_USER and desired mode
       */
       wq_found = accfg_wq_get_type(wq) == ACCFG_WQT_USER &&
-      accfg_wq_get_mode(wq) == ACCFG_WQ_DEDICATED;
-      /* accfg_wq_get_mode(wq) == ACCFG_WQ_SHARED; */
+      /* accfg_wq_get_mode(wq) == ACCFG_WQ_DEDICATED; */
+      accfg_wq_get_mode(wq) == ACCFG_WQ_SHARED;
       if (wq_found)
         break;
     }
